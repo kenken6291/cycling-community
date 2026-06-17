@@ -1,0 +1,2420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚴 サイクリングコミュニティ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       CSS カスタムプロパティ（デザイントークン）
+    ============================================================ */
+    :root {
+      --color-primary:      #2d5a27;
+      --color-primary-mid:  #4a7c59;
+      --color-primary-light:#7aab82;
+      --color-accent:       #c4622d;
+      --color-accent-light: #e8895e;
+      --color-bg:           #f5f0e8;
+      --color-bg-card:      #faf7f2;
+      --color-bg-white:     #ffffff;
+      --color-text:         #2c2c2c;
+      --color-text-mid:     #555555;
+      --color-text-light:   #888888;
+      --color-border:       #d8d0c4;
+      --color-border-light: #ede8e0;
+      --color-danger:       #b83232;
+      --color-success:      #2d7a4e;
+      --font-serif:         'Noto Serif JP', serif;
+      --font-sans:          'Noto Sans JP', sans-serif;
+      --radius-sm:          4px;
+      --radius-md:          8px;
+      --radius-lg:          12px;
+      --shadow-sm:          0 1px 4px rgba(0,0,0,0.08);
+      --shadow-md:          0 4px 16px rgba(0,0,0,0.12);
+      --shadow-lg:          0 8px 32px rgba(0,0,0,0.18);
+      --transition:         0.2s ease;
+    }
+
+    /* ============================================================
+       リセット・基本
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    button {
+      font-family: var(--font-sans);
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    input, textarea, select {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+    }
+
+    a { color: var(--color-primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ============================================================
+       ヘッダー
+    ============================================================ */
+    .site-header {
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .site-logo {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .site-logo .logo-icon { font-size: 1.4rem; }
+
+    .header-auth {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .login-status {
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+    }
+
+    .btn-header {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 0.375rem 0.875rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background var(--transition);
+      min-height: 36px;
+    }
+
+    .btn-header:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .btn-header-accent {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+
+    .btn-header-accent:hover {
+      background: var(--color-accent-light);
+      border-color: var(--color-accent-light);
+    }
+
+    /* ============================================================
+       タブナビゲーション
+    ============================================================ */
+    .tab-nav {
+      background: var(--color-bg-white);
+      border-bottom: 2px solid var(--color-border);
+      position: sticky;
+      top: 60px;
+      z-index: 90;
+    }
+
+    .tab-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tab-nav-inner::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      background: none;
+      color: var(--color-text-mid);
+      padding: 0.875rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+      transition: color var(--transition), border-color var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      min-height: 44px;
+    }
+
+    .tab-btn:hover { color: var(--color-primary); }
+
+    .tab-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .tab-btn .tab-icon { font-size: 1.1rem; }
+
+    /* ============================================================
+       メインコンテンツエリア
+    ============================================================ */
+    .main-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ============================================================
+       セクション見出し
+    ============================================================ */
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.9rem;
+      color: var(--color-text-mid);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ============================================================
+       フィルターバー
+    ============================================================ */
+    .filter-bar {
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .filter-group label {
+      font-size: 0.75rem;
+      color: var(--color-text-mid);
+      font-weight: 500;
+    }
+
+    .filter-select {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 0.375rem 0.625rem;
+      font-size: 0.875rem;
+      background: var(--color-bg);
+      color: var(--color-text);
+      min-height: 36px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.625rem center;
+      padding-right: 1.75rem;
+    }
+
+    .btn-filter-reset {
+      background: var(--color-border);
+      color: var(--color-text-mid);
+      padding: 0.375rem 0.875rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      min-height: 36px;
+      transition: background var(--transition);
+    }
+
+    .btn-filter-reset:hover { background: var(--color-border-light); }
+
+    /* ============================================================
+       イベントグリッド・カード
+    ============================================================ */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .event-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* カードのホイールモチーフ装飾線 */
+    .event-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-primary-light), var(--color-accent-light));
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .event-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      border-color: var(--color-primary-light);
+    }
+
+    .event-card:hover::before { opacity: 1; }
+
+    .card-difficulty-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.125rem 0.5rem;
+      border-radius: 99px;
+      margin-bottom: 0.625rem;
+    }
+
+    .badge-beginner { background: #e8f4ea; color: var(--color-primary); }
+    .badge-intermediate { background: #fff3e0; color: #a05a00; }
+    .badge-advanced { background: #fde8e8; color: var(--color-danger); }
+
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 0.625rem;
+      line-height: 1.45;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .card-meta-item {
+      font-size: 0.8125rem;
+      color: var(--color-text-mid);
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .card-meta-item .meta-icon { font-size: 0.9375rem; flex-shrink: 0; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--color-border-light);
+      padding-top: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .card-stats {
+      display: flex;
+      gap: 0.875rem;
+    }
+
+    .card-stat {
+      font-size: 0.8125rem;
+      color: var(--color-text-mid);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .card-stat strong {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .card-rinko-tag {
+      font-size: 0.75rem;
+      background: #e8f0fe;
+      color: #1a56a0;
+      padding: 0.125rem 0.5rem;
+      border-radius: 99px;
+    }
+
+    /* ============================================================
+       空状態
+    ============================================================ */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--color-text-light);
+    }
+
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state p { font-size: 0.9375rem; }
+
+    /* ============================================================
+       フォーム共通
+    ============================================================ */
+    .form-group {
+      margin-bottom: 1.125rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text);
+      margin-bottom: 0.375rem;
+    }
+
+    .form-label .required {
+      color: var(--color-accent);
+      margin-left: 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9375rem;
+      color: var(--color-text);
+      background: var(--color-bg-white);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(45,90,39,0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2rem;
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+      margin-top: 0.25rem;
+    }
+
+    /* ============================================================
+       ボタン共通
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      padding: 0.5625rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: background var(--transition), box-shadow var(--transition), opacity var(--transition);
+      min-height: 44px;
+    }
+
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--color-primary-mid);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-accent {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    .btn-accent:hover:not(:disabled) {
+      background: var(--color-accent-light);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--color-primary);
+      border: 1.5px solid var(--color-primary);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: rgba(45,90,39,0.07);
+    }
+
+    .btn-danger {
+      background: var(--color-danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #d44040;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text-mid);
+    }
+
+    .btn-ghost:hover { background: var(--color-border-light); }
+
+    .btn-sm {
+      padding: 0.3125rem 0.75rem;
+      font-size: 0.8125rem;
+      min-height: 32px;
+    }
+
+    .btn-block { width: 100%; }
+
+    /* ============================================================
+       モーダル共通
+    ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(16px);
+      transition: transform 0.25s ease;
+    }
+
+    .modal-overlay.open .modal-box { transform: translateY(0); }
+
+    .modal-box-wide { max-width: 780px; }
+
+    .modal-header {
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--color-border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      background: var(--color-bg-white);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .modal-title {
+      font-family: var(--font-serif);
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .btn-close {
+      background: none;
+      color: var(--color-text-mid);
+      font-size: 1.375rem;
+      line-height: 1;
+      padding: 0.25rem;
+      border-radius: 50%;
+      transition: background var(--transition);
+      min-height: 36px;
+      min-width: 36px;
+    }
+
+    .btn-close:hover { background: var(--color-border-light); }
+
+    .modal-body {
+      padding: 1.375rem 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--color-border-light);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    /* ============================================================
+       ログイン・会員登録モーダル
+    ============================================================ */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: 1.25rem;
+    }
+
+    .auth-tab-btn {
+      background: none;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--color-text-mid);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-weight: 500;
+      transition: color var(--transition), border-color var(--transition);
+      min-height: 44px;
+    }
+
+    .auth-tab-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .auth-tab-panel { display: none; }
+    .auth-tab-panel.active { display: block; }
+
+    .admin-login-link {
+      display: block;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      color: var(--color-text-light);
+    }
+
+    .admin-login-link a {
+      color: var(--color-text-light);
+      text-decoration: underline;
+    }
+
+    /* ============================================================
+       イベント詳細モーダル
+    ============================================================ */
+    .event-detail-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .event-detail-title {
+      font-family: var(--font-serif);
+      font-size: 1.3125rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .event-detail-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 1rem;
+      background: var(--color-bg);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .detail-meta-item {
+      font-size: 0.875rem;
+      color: var(--color-text-mid);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.375rem;
+    }
+
+    .detail-meta-item .meta-label {
+      font-weight: 500;
+      color: var(--color-text);
+      flex-shrink: 0;
+    }
+
+    .event-detail-section {
+      margin-bottom: 1.25rem;
+    }
+
+    .event-detail-section-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .event-notes {
+      font-size: 0.9rem;
+      color: var(--color-text-mid);
+      line-height: 1.8;
+      background: var(--color-bg);
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      white-space: pre-wrap;
+    }
+
+    /* 参加者リスト */
+    .participants-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .participant-chip {
+      background: #e8f4ea;
+      color: var(--color-primary);
+      font-size: 0.8125rem;
+      padding: 0.25rem 0.625rem;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+
+    /* コメント欄 */
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .comment-item {
+      background: var(--color-bg);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.375rem;
+    }
+
+    .comment-author {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .comment-date {
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+    }
+
+    .comment-content {
+      font-size: 0.875rem;
+      color: var(--color-text);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .comment-form {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .comment-form textarea {
+      flex: 1;
+    }
+
+    /* 詳細モーダルアクションバー */
+    .detail-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border-light);
+      margin-top: 1rem;
+    }
+
+    /* ============================================================
+       マイページ
+    ============================================================ */
+    .my-section {
+      margin-bottom: 2rem;
+    }
+
+    .my-event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .my-event-item {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .my-event-info { flex: 1; }
+
+    .my-event-title {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .my-event-date {
+      font-size: 0.8125rem;
+      color: var(--color-text-mid);
+    }
+
+    .my-event-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       管理パネル
+    ============================================================ */
+    .admin-panel-grid {
+      display: grid;
+      gap: 2rem;
+    }
+
+    .admin-table-wrap {
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .admin-table th {
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0.625rem 0.875rem;
+      text-align: left;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .admin-table td {
+      padding: 0.5rem 0.875rem;
+      border-bottom: 1px solid var(--color-border-light);
+      color: var(--color-text-mid);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .admin-table tr:hover td { background: var(--color-bg); }
+
+    /* ============================================================
+       トースト通知
+    ============================================================ */
+    #toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--color-text);
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      box-shadow: var(--shadow-md);
+      max-width: 320px;
+      animation: slideIn 0.25s ease forwards;
+      pointer-events: all;
+    }
+
+    .toast-success { background: var(--color-success); }
+    .toast-error { background: var(--color-danger); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+
+    /* ============================================================
+       ローディングスピナー
+    ============================================================ */
+    .spinner-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(245,240,232,0.7);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       イベント企画フォームパネル
+    ============================================================ */
+    .create-event-panel {
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+
+    .form-section-title {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 1.5rem 0 0.875rem;
+      padding-bottom: 0.375rem;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .form-section-title:first-child { margin-top: 0; }
+
+    /* ============================================================
+       レスポンシブ（スマホ）
+    ============================================================ */
+    @media (max-width: 768px) {
+      .site-logo .logo-text { display: none; }
+      .site-logo .logo-icon { font-size: 1.6rem; }
+
+      .tab-btn .tab-label { display: none; }
+      .tab-btn .tab-icon { font-size: 1.25rem; }
+      .tab-btn { padding: 0.75rem 1rem; }
+
+      .main-content { padding: 1.25rem 1rem; }
+
+      .events-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-box {
+        max-height: 95vh;
+        border-radius: var(--radius-md);
+      }
+
+      .modal-overlay {
+        padding: 0.5rem;
+        align-items: flex-end;
+      }
+
+      .event-detail-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .my-event-item {
+        flex-direction: column;
+      }
+
+      .my-event-actions {
+        width: 100%;
+      }
+
+      .filter-bar { padding: 0.75rem; }
+
+      .create-event-panel { padding: 1.25rem; }
+
+      #toast-container {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+      }
+
+      .toast { max-width: 100%; }
+
+      .admin-table td { max-width: 120px; }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .events-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+  ヘッダー
+============================================================ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="site-logo">
+      <span class="logo-icon">🚴</span>
+      <span class="logo-text">サイクリングコミュニティ</span>
+    </div>
+    <div class="header-auth">
+      <span class="login-status" id="login-status-text"></span>
+      <button class="btn-header btn-header-accent" id="btn-open-auth" onclick="openAuthModal()">ログイン</button>
+      <button class="btn-header" id="btn-logout" style="display:none" onclick="logout()">ログアウト</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+  タブナビゲーション
+============================================================ -->
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" data-tab="events" onclick="switchTab('events')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">イベント一覧</span>
+    </button>
+    <button class="tab-btn" data-tab="create" id="tab-create" onclick="switchTab('create')" style="display:none">
+      <span class="tab-icon">✏️</span>
+      <span class="tab-label">企画を立てる</span>
+    </button>
+    <button class="tab-btn" data-tab="mypage" id="tab-mypage" onclick="switchTab('mypage')" style="display:none">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">マイページ</span>
+    </button>
+    <button class="tab-btn" data-tab="admin" id="tab-admin" onclick="switchTab('admin')" style="display:none">
+      <span class="tab-icon">🔧</span>
+      <span class="tab-label">管理</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+  メインコンテンツ
+============================================================ -->
+<main class="main-content">
+
+  <!-- ── イベント一覧タブ ── -->
+  <section class="tab-panel active" id="panel-events">
+    <h2 class="section-title">📋 イベント一覧</h2>
+    <p class="section-subtitle">みんなのサイクリング計画を見てみよう。ログインすると参加申込もできます。</p>
+
+    <!-- フィルターバー -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label for="filter-difficulty">難易度</label>
+        <select class="filter-select" id="filter-difficulty" onchange="applyFilters()">
+          <option value="">すべて</option>
+          <option value="初心者向け">初心者向け</option>
+          <option value="中級">中級</option>
+          <option value="上級">上級</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-month">開催月</label>
+        <input type="month" class="filter-select" id="filter-month" oninput="applyFilters()" style="padding-right:0.625rem">
+      </div>
+      <div class="filter-group">
+        <label for="filter-rinko">輪行区間</label>
+        <select class="filter-select" id="filter-rinko" onchange="applyFilters()">
+          <option value="">すべて</option>
+          <option value="あり">あり</option>
+        </select>
+      </div>
+      <button class="btn-filter-reset" onclick="resetFilters()">リセット</button>
+    </div>
+
+    <div class="events-grid" id="events-grid">
+      <div class="empty-state">
+        <div class="empty-icon">🚴</div>
+        <p>読み込み中…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── イベント企画タブ ── -->
+  <section class="tab-panel" id="panel-create">
+    <h2 class="section-title">✏️ イベントを企画する</h2>
+    <div class="create-event-panel">
+      <form id="create-event-form" onsubmit="submitCreateEvent(event)">
+
+        <div class="form-section-title">基本情報</div>
+        <div class="form-group">
+          <label class="form-label">イベントタイトル <span class="required">必須</span></label>
+          <input class="form-input" type="text" id="ev-title" placeholder="例：奥多摩周遊ライド" maxlength="60" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">開催日 <span class="required">必須</span></label>
+            <input class="form-input" type="date" id="ev-date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">募集締切日</label>
+            <input class="form-input" type="date" id="ev-deadline">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">集合場所 <span class="required">必須</span></label>
+          <input class="form-input" type="text" id="ev-location" placeholder="例：武蔵五日市駅 改札前" maxlength="100" required>
+        </div>
+
+        <div class="form-section-title">ルート情報</div>
+        <div class="form-group">
+          <label class="form-label">ルート概要</label>
+          <textarea class="form-textarea" id="ev-route" placeholder="例：武蔵五日市駅 → 数馬 → 風張峠 → 奥多摩湖" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">距離（km）</label>
+            <input class="form-input" type="number" id="ev-distance" placeholder="例：80" min="0" max="9999" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">獲得標高（m）</label>
+            <input class="form-input" type="number" id="ev-elevation" placeholder="例：1200" min="0" max="99999" step="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">難易度</label>
+            <select class="form-select" id="ev-difficulty">
+              <option value="初心者向け">初心者向け</option>
+              <option value="中級" selected>中級</option>
+              <option value="上級">上級</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">輪行区間</label>
+            <select class="form-select" id="ev-rinko">
+              <option value="なし">なし</option>
+              <option value="あり">あり</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">募集情報</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">定員（人）</label>
+            <input class="form-input" type="number" id="ev-capacity" placeholder="例：10（空欄で無制限）" min="1" max="999">
+          </div>
+          <div class="form-group">
+            <label class="form-label">連絡先（任意）</label>
+            <input class="form-input" type="text" id="ev-contact" placeholder="SNSアカウント等" maxlength="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">詳細・備考</label>
+          <textarea class="form-textarea" id="ev-notes" placeholder="持ち物、ペース、注意事項など" rows="4"></textarea>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <button class="btn btn-primary btn-block" type="submit" id="btn-create-submit">
+            🚴 イベントを公開する
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ── マイページタブ ── -->
+  <section class="tab-panel" id="panel-mypage">
+    <h2 class="section-title">👤 マイページ</h2>
+    <div class="my-section">
+      <h3 class="section-title" style="font-size:1.1rem">🗓 自分が主催するイベント</h3>
+      <div class="my-event-list" id="my-organized-list">
+        <div class="empty-state"><p>主催イベントはありません</p></div>
+      </div>
+    </div>
+    <div class="my-section">
+      <h3 class="section-title" style="font-size:1.1rem">📋 参加申込中のイベント</h3>
+      <div class="my-event-list" id="my-joined-list">
+        <div class="empty-state"><p>参加申込中のイベントはありません</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 管理パネルタブ ── -->
+  <section class="tab-panel" id="panel-admin">
+    <h2 class="section-title">🔧 管理パネル</h2>
+    <div class="admin-panel-grid">
+      <div>
+        <h3 class="section-title" style="font-size:1.1rem">📋 全イベント</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="admin-events-table">
+            <thead><tr><th>タイトル</th><th>主催者</th><th>開催日</th><th>操作</th></tr></thead>
+            <tbody id="admin-events-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 class="section-title" style="font-size:1.1rem">👥 全会員</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="admin-members-table">
+            <thead><tr><th>ニックネーム</th><th>登録日</th><th>操作</th></tr></thead>
+            <tbody id="admin-members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 class="section-title" style="font-size:1.1rem">💬 全コメント</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="admin-messages-table">
+            <thead><tr><th>投稿者</th><th>本文</th><th>投稿日</th><th>操作</th></tr></thead>
+            <tbody id="admin-messages-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+  ログイン・会員登録モーダル
+============================================================ -->
+<div class="modal-overlay" id="modal-auth">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="auth-modal-title">🚴 ログイン / 会員登録</span>
+      <button class="btn-close" onclick="closeModal('modal-auth')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="auth-tab-login" onclick="switchAuthTab('login')">ログイン</button>
+        <button class="auth-tab-btn" id="auth-tab-register" onclick="switchAuthTab('register')">新規登録</button>
+      </div>
+
+      <!-- ログインフォーム -->
+      <div class="auth-tab-panel active" id="auth-panel-login">
+        <div class="form-group">
+          <label class="form-label">ニックネーム</label>
+          <input class="form-input" type="text" id="login-nickname" placeholder="登録済みのニックネーム" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード</label>
+          <input class="form-input" type="password" id="login-password" placeholder="パスワード" autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="submitLogin()">ログイン</button>
+        <div class="admin-login-link">
+          <a href="#" onclick="switchAuthTab('admin'); return false;">管理者としてログイン</a>
+        </div>
+      </div>
+
+      <!-- 新規登録フォーム -->
+      <div class="auth-tab-panel" id="auth-panel-register">
+        <div class="form-group">
+          <label class="form-label">ニックネーム <span class="required">必須</span></label>
+          <input class="form-input" type="text" id="reg-nickname" placeholder="2〜20文字" maxlength="20" autocomplete="username">
+          <p class="form-hint">他の会員に表示されます。あとから変更できません。</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード <span class="required">必須</span></label>
+          <input class="form-input" type="password" id="reg-password" placeholder="4文字以上" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード（確認）</label>
+          <input class="form-input" type="password" id="reg-password-confirm" placeholder="もう一度入力" autocomplete="new-password">
+        </div>
+        <button class="btn btn-accent btn-block" onclick="submitRegister()">会員登録</button>
+      </div>
+
+      <!-- 管理者ログインフォーム -->
+      <div class="auth-tab-panel" id="auth-panel-admin">
+        <div class="form-group">
+          <label class="form-label">管理者パスワード</label>
+          <input class="form-input" type="password" id="admin-password" placeholder="管理者パスワード" autocomplete="off">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="submitAdminLogin()">管理者ログイン</button>
+        <div class="admin-login-link">
+          <a href="#" onclick="switchAuthTab('login'); return false;">← 通常ログインに戻る</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+  イベント詳細モーダル
+============================================================ -->
+<div class="modal-overlay" id="modal-event-detail">
+  <div class="modal-box modal-box-wide">
+    <div class="modal-header">
+      <span class="modal-title">🚴 イベント詳細</span>
+      <button class="btn-close" onclick="closeModal('modal-event-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="event-detail-content">
+      <!-- JS で動的生成 -->
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+  イベント編集モーダル
+============================================================ -->
+<div class="modal-overlay" id="modal-edit-event">
+  <div class="modal-box modal-box-wide">
+    <div class="modal-header">
+      <span class="modal-title">✏️ イベントを編集</span>
+      <button class="btn-close" onclick="closeModal('modal-edit-event')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="edit-event-form" onsubmit="submitEditEvent(event)">
+        <input type="hidden" id="edit-event-id">
+        <div class="form-section-title">基本情報</div>
+        <div class="form-group">
+          <label class="form-label">イベントタイトル <span class="required">必須</span></label>
+          <input class="form-input" type="text" id="edit-ev-title" maxlength="60" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">開催日 <span class="required">必須</span></label>
+            <input class="form-input" type="date" id="edit-ev-date" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">募集締切日</label>
+            <input class="form-input" type="date" id="edit-ev-deadline">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">集合場所 <span class="required">必須</span></label>
+          <input class="form-input" type="text" id="edit-ev-location" maxlength="100" required>
+        </div>
+        <div class="form-section-title">ルート情報</div>
+        <div class="form-group">
+          <label class="form-label">ルート概要</label>
+          <textarea class="form-textarea" id="edit-ev-route" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">距離（km）</label>
+            <input class="form-input" type="number" id="edit-ev-distance" min="0" max="9999" step="0.1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">獲得標高（m）</label>
+            <input class="form-input" type="number" id="edit-ev-elevation" min="0" max="99999">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">難易度</label>
+            <select class="form-select" id="edit-ev-difficulty">
+              <option value="初心者向け">初心者向け</option>
+              <option value="中級">中級</option>
+              <option value="上級">上級</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">輪行区間</label>
+            <select class="form-select" id="edit-ev-rinko">
+              <option value="なし">なし</option>
+              <option value="あり">あり</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-section-title">募集情報</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">定員（人）</label>
+            <input class="form-input" type="number" id="edit-ev-capacity" min="1" max="999">
+          </div>
+          <div class="form-group">
+            <label class="form-label">連絡先（任意）</label>
+            <input class="form-input" type="text" id="edit-ev-contact" maxlength="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">詳細・備考</label>
+          <textarea class="form-textarea" id="edit-ev-notes" rows="4"></textarea>
+        </div>
+        <div class="modal-footer" style="padding:1rem 0 0; border:none; justify-content:flex-end">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-event')">キャンセル</button>
+          <button type="submit" class="btn btn-primary">更新する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+  トースト通知コンテナ
+============================================================ -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+  JavaScript
+============================================================ -->
+<script>
+'use strict';
+
+// ============================================================
+// 設定
+// GASデプロイ後、以下のURLを書き換えてください
+// ============================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwTsZrHO44yRv4Ryh0-YHwfsPqUp4YZz1YGOu64FheUfV8UAHe8NteRIErf3DaLByB16Q/exec';
+
+// ============================================================
+// アプリ状態管理
+// ============================================================
+let appState = {
+  // ログイン済み会員情報
+  memberId:   sessionStorage.getItem('memberId')   || null,
+  nickname:   sessionStorage.getItem('nickname')   || null,
+  token:      sessionStorage.getItem('token')      || null,
+  // 管理者ログイン
+  adminToken: sessionStorage.getItem('adminToken') || null,
+  // キャッシュ
+  allEvents:  [],
+  filteredEvents: []
+};
+
+// ============================================================
+// GAS API 呼び出し共通関数
+// ============================================================
+
+/**
+ * GAS Web App に POST リクエストを送る
+ * Content-Type: text/plain でJSON文字列を送信
+ */
+async function callGAS(payload) {
+  const response = await fetch(GAS_URL, {
+    method:  'POST',
+    mode:    'cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body:    JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    throw new Error('サーバーとの通信に失敗しました（HTTP ' + response.status + '）');
+  }
+  return await response.json();
+}
+
+// ============================================================
+// 初期化
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  updateAuthUI();
+  loadEvents();
+});
+
+// ============================================================
+// 認証UI の更新
+// ============================================================
+function updateAuthUI() {
+  const isLoggedIn  = !!appState.token;
+  const isAdmin     = !!appState.adminToken;
+
+  // ヘッダー
+  document.getElementById('login-status-text').textContent =
+    isAdmin  ? '🔧 管理者' :
+    isLoggedIn ? `👤 ${appState.nickname}` : '';
+  document.getElementById('btn-open-auth').style.display = (isLoggedIn || isAdmin) ? 'none' : '';
+  document.getElementById('btn-logout').style.display    = (isLoggedIn || isAdmin) ? '' : 'none';
+
+  // タブ表示制御
+  document.getElementById('tab-create').style.display  = isLoggedIn ? '' : 'none';
+  document.getElementById('tab-mypage').style.display  = isLoggedIn ? '' : 'none';
+  document.getElementById('tab-admin').style.display   = isAdmin    ? '' : 'none';
+
+  // ログアウト後に非表示タブが選択中だった場合はイベント一覧へ
+  if (!isLoggedIn && !isAdmin) {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab && ['create','mypage','admin'].includes(activeTab.dataset.tab)) {
+      switchTab('events');
+    }
+  }
+}
+
+// ============================================================
+// ログアウト
+// ============================================================
+function logout() {
+  sessionStorage.clear();
+  appState = { memberId: null, nickname: null, token: null, adminToken: null, allEvents: appState.allEvents, filteredEvents: appState.filteredEvents };
+  updateAuthUI();
+  switchTab('events');
+  showToast('ログアウトしました', 'success');
+}
+
+// ============================================================
+// タブ切替
+// ============================================================
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === 'panel-' + tabName);
+  });
+
+  // タブ切替時に必要なデータを取得
+  if (tabName === 'mypage') loadMyPage();
+  if (tabName === 'admin')  loadAdminPanel();
+}
+
+// ============================================================
+// モーダル開閉
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// オーバーレイクリックで閉じる
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// ============================================================
+// トースト通知
+// ============================================================
+function showToast(message, type = '') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' toast-' + type : '');
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// ============================================================
+// スピナー表示制御
+// ============================================================
+let spinnerEl = null;
+
+function showSpinner() {
+  if (spinnerEl) return;
+  spinnerEl = document.createElement('div');
+  spinnerEl.className = 'spinner-overlay';
+  spinnerEl.innerHTML = '<div class="spinner"></div>';
+  document.body.appendChild(spinnerEl);
+}
+
+function hideSpinner() {
+  if (spinnerEl) { spinnerEl.remove(); spinnerEl = null; }
+}
+
+// ============================================================
+// 認証モーダル
+// ============================================================
+function openAuthModal() {
+  switchAuthTab('login');
+  openModal('modal-auth');
+}
+
+function switchAuthTab(tab) {
+  ['login','register','admin'].forEach(t => {
+    document.getElementById('auth-tab-' + t) && document.getElementById('auth-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('auth-panel-' + t).classList.toggle('active', t === tab);
+  });
+}
+
+// ── ログイン送信 ──
+async function submitLogin() {
+  const nickname = document.getElementById('login-nickname').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!nickname || !password) { showToast('ニックネームとパスワードを入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({ action: 'login', nickname, password });
+    if (res.status === 'ok') {
+      const { memberId, nickname: nick, token } = res.data;
+      appState.memberId = memberId;
+      appState.nickname = nick;
+      appState.token    = token;
+      sessionStorage.setItem('memberId', memberId);
+      sessionStorage.setItem('nickname', nick);
+      sessionStorage.setItem('token',    token);
+      closeModal('modal-auth');
+      updateAuthUI();
+      renderEvents(); // カードの参加ボタン等を更新
+      showToast(`ようこそ、${nick} さん！`, 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ── 会員登録送信 ──
+async function submitRegister() {
+  const nickname  = document.getElementById('reg-nickname').value.trim();
+  const password  = document.getElementById('reg-password').value;
+  const confirm   = document.getElementById('reg-password-confirm').value;
+
+  if (!nickname || !password) { showToast('ニックネームとパスワードを入力してください', 'error'); return; }
+  if (password !== confirm)   { showToast('パスワードが一致しません', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({ action: 'register', nickname, password });
+    if (res.status === 'ok') {
+      showToast('会員登録が完了しました。ログインしてください。', 'success');
+      switchAuthTab('login');
+      document.getElementById('login-nickname').value = nickname;
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ── 管理者ログイン送信 ──
+async function submitAdminLogin() {
+  const password = document.getElementById('admin-password').value;
+  if (!password) { showToast('パスワードを入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({ action: 'adminLogin', password });
+    if (res.status === 'ok') {
+      appState.adminToken = res.data.adminToken;
+      sessionStorage.setItem('adminToken', res.data.adminToken);
+      closeModal('modal-auth');
+      updateAuthUI();
+      showToast('管理者としてログインしました', 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// イベント一覧の読み込み・レンダリング
+// ============================================================
+async function loadEvents() {
+  showSpinner();
+  try {
+    const filter = getFilterValues();
+    const res = await callGAS({ action: 'getEvents', filter });
+    if (res.status === 'ok') {
+      appState.allEvents = res.data.events;
+      applyFilters();
+    } else {
+      showToast(res.message, 'error');
+      document.getElementById('events-grid').innerHTML =
+        '<div class="empty-state"><div class="empty-icon">⚠️</div><p>' + escHtml(res.message) + '</p></div>';
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+    document.getElementById('events-grid').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>イベントの取得に失敗しました。<br>GAS URLを確認してください。</p></div>';
+  } finally {
+    hideSpinner();
+  }
+}
+
+function getFilterValues() {
+  return {
+    difficulty: document.getElementById('filter-difficulty').value,
+    month:      document.getElementById('filter-month').value,
+    rinko:      document.getElementById('filter-rinko').value
+  };
+}
+
+function applyFilters() {
+  const filter = getFilterValues();
+  appState.filteredEvents = appState.allEvents.filter(ev => {
+    if (filter.difficulty && ev.difficulty !== filter.difficulty) return false;
+    if (filter.rinko === 'あり' && ev.rinko !== 'あり') return false;
+    if (filter.month) {
+      const dateStr = String(ev.eventDate).substring(0, 7);
+      if (dateStr !== filter.month) return false;
+    }
+    return true;
+  });
+  renderEvents();
+}
+
+function resetFilters() {
+  document.getElementById('filter-difficulty').value = '';
+  document.getElementById('filter-month').value = '';
+  document.getElementById('filter-rinko').value = '';
+  applyFilters();
+}
+
+function renderEvents() {
+  const grid = document.getElementById('events-grid');
+  const events = appState.filteredEvents;
+
+  if (events.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🚴</div><p>該当するイベントはありません</p></div>';
+    return;
+  }
+
+  grid.innerHTML = events.map(ev => buildEventCard(ev)).join('');
+}
+
+function buildEventCard(ev) {
+  const badgeClass = { '初心者向け': 'badge-beginner', '中級': 'badge-intermediate', '上級': 'badge-advanced' }[ev.difficulty] || 'badge-beginner';
+  const dateStr = ev.eventDate ? String(ev.eventDate).replace(/-/g, '/') : '日程未定';
+  const distanceStr = ev.distance ? ev.distance + ' km' : '—';
+  const elevStr     = ev.elevation ? ev.elevation + ' m' : '—';
+
+  return `
+    <div class="event-card" onclick="openEventDetail('${escHtml(ev.eventId)}')">
+      <span class="card-difficulty-badge ${badgeClass}">${escHtml(ev.difficulty)}</span>
+      <div class="card-title">${escHtml(ev.title)}</div>
+      <div class="card-meta">
+        <div class="card-meta-item"><span class="meta-icon">📅</span>${escHtml(dateStr)}</div>
+        <div class="card-meta-item"><span class="meta-icon">📍</span>${escHtml(ev.location)}</div>
+        <div class="card-meta-item"><span class="meta-icon">🛣</span>${distanceStr}　<span class="meta-icon">⛰</span>${elevStr}</div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="card-stat">👥 <strong>${ev.participantCount}</strong> 人参加</span>
+          ${ev.capacity ? `<span class="card-stat">定員 ${escHtml(String(ev.capacity))} 人</span>` : ''}
+        </div>
+        ${ev.rinko === 'あり' ? '<span class="card-rinko-tag">🚃 輪行あり</span>' : ''}
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// イベント詳細モーダル
+// ============================================================
+async function openEventDetail(eventId) {
+  showSpinner();
+  try {
+    const res = await callGAS({ action: 'getEventDetail', eventId });
+    if (res.status !== 'ok') { showToast(res.message, 'error'); return; }
+    const { event: ev, participants, messages } = res.data;
+    renderEventDetail(ev, participants, messages);
+    openModal('modal-event-detail');
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function renderEventDetail(ev, participants, messages) {
+  const isLoggedIn  = !!appState.token;
+  const isAdmin     = !!appState.adminToken;
+  const isOrganizer = isLoggedIn && appState.memberId === ev.organizerId;
+  const isJoined    = participants.some(p => p.memberId === appState.memberId);
+  const dateStr     = ev.eventDate ? String(ev.eventDate).replace(/-/g, '/') : '日程未定';
+  const deadlineStr = ev.deadline  ? String(ev.deadline).replace(/-/g, '/') : '—';
+
+  const participantsHtml = participants.length > 0
+    ? participants.map(p => `<span class="participant-chip">👤 ${escHtml(p.nickname)}</span>`).join('')
+    : '<span style="color:var(--color-text-light);font-size:0.875rem">まだ参加者はいません</span>';
+
+  const messagesHtml = messages.length > 0
+    ? messages.map(m => {
+        const canDelete = isAdmin || (isLoggedIn && appState.memberId === m.memberId);
+        return `
+          <div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">👤 ${escHtml(m.nickname)}</span>
+              <span style="display:flex;align-items:center;gap:0.5rem">
+                <span class="comment-date">${escHtml(String(m.postedAt).substring(0,16))}</span>
+                ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="deleteComment('${escHtml(m.messageId)}','${escHtml(ev.eventId)}')">削除</button>` : ''}
+              </span>
+            </div>
+            <div class="comment-content">${escHtml(m.content)}</div>
+          </div>`;
+      }).join('')
+    : '<div style="color:var(--color-text-light);font-size:0.875rem;padding:0.5rem 0">コメントはまだありません</div>';
+
+  // 参加ボタンの状態
+  let joinBtnHtml = '';
+  if (!isLoggedIn && !isAdmin) {
+    joinBtnHtml = `<button class="btn btn-outline" onclick="openAuthModal()">ログインして参加申込</button>`;
+  } else if (isOrganizer) {
+    joinBtnHtml = `<span style="font-size:0.875rem;color:var(--color-primary);font-weight:500">📋 あなたが主催するイベントです</span>`;
+  } else if (isAdmin) {
+    joinBtnHtml = '';
+  } else if (isJoined) {
+    joinBtnHtml = `<button class="btn btn-ghost" onclick="cancelJoin('${escHtml(ev.eventId)}')">参加キャンセル</button>`;
+  } else {
+    joinBtnHtml = `<button class="btn btn-accent" onclick="joinEvent('${escHtml(ev.eventId)}')">🚴 参加申込する</button>`;
+  }
+
+  // 編集・削除ボタン
+  const editDeleteHtml = (isOrganizer || isAdmin) ? `
+    <button class="btn btn-outline btn-sm" onclick="openEditEvent('${escHtml(ev.eventId)}')">✏️ 編集</button>
+    <button class="btn btn-danger btn-sm"  onclick="deleteEvent('${escHtml(ev.eventId)}')">🗑 削除</button>
+  ` : '';
+
+  document.getElementById('event-detail-content').innerHTML = `
+    <div class="event-detail-header">
+      <div style="margin-bottom:0.5rem">
+        <span class="card-difficulty-badge ${{ '初心者向け':'badge-beginner','中級':'badge-intermediate','上級':'badge-advanced' }[ev.difficulty] || 'badge-beginner'}">${escHtml(ev.difficulty)}</span>
+        ${ev.rinko === 'あり' ? '<span class="card-rinko-tag" style="margin-left:0.5rem">🚃 輪行あり</span>' : ''}
+      </div>
+      <div class="event-detail-title">${escHtml(ev.title)}</div>
+      <div style="font-size:0.875rem;color:var(--color-text-light)">主催：${escHtml(ev.organizerName)}</div>
+    </div>
+
+    <div class="event-detail-meta">
+      <div class="detail-meta-item"><span class="meta-label">📅 開催日</span>${escHtml(dateStr)}</div>
+      <div class="detail-meta-item"><span class="meta-label">⏰ 締切</span>${escHtml(deadlineStr)}</div>
+      <div class="detail-meta-item"><span class="meta-label">📍 集合</span>${escHtml(ev.location)}</div>
+      <div class="detail-meta-item"><span class="meta-label">👥 定員</span>${ev.capacity ? escHtml(String(ev.capacity)) + ' 人' : '無制限'}</div>
+      <div class="detail-meta-item"><span class="meta-label">🛣 距離</span>${ev.distance ? escHtml(String(ev.distance)) + ' km' : '—'}</div>
+      <div class="detail-meta-item"><span class="meta-label">⛰ 標高</span>${ev.elevation ? escHtml(String(ev.elevation)) + ' m' : '—'}</div>
+    </div>
+
+    ${ev.routeOverview ? `
+    <div class="event-detail-section">
+      <div class="event-detail-section-title">🗺 ルート概要</div>
+      <div class="event-notes">${escHtml(ev.routeOverview)}</div>
+    </div>` : ''}
+
+    ${ev.notes ? `
+    <div class="event-detail-section">
+      <div class="event-detail-section-title">📝 詳細・備考</div>
+      <div class="event-notes">${escHtml(ev.notes)}</div>
+    </div>` : ''}
+
+    ${ev.contact ? `
+    <div class="event-detail-section">
+      <div class="event-detail-section-title">📧 連絡先</div>
+      <div style="font-size:0.9rem">${escHtml(ev.contact)}</div>
+    </div>` : ''}
+
+    <div class="event-detail-section">
+      <div class="event-detail-section-title">👥 参加者（${participants.length}人）</div>
+      <div class="participants-list">${participantsHtml}</div>
+    </div>
+
+    <div class="event-detail-section">
+      <div class="event-detail-section-title">💬 コメント</div>
+      <div class="comments-list" id="comments-list-${escHtml(ev.eventId)}">${messagesHtml}</div>
+      ${isLoggedIn ? `
+      <div class="comment-form">
+        <textarea class="form-textarea" id="comment-input-${escHtml(ev.eventId)}" placeholder="コメントを入力…" rows="2" style="min-height:60px"></textarea>
+        <button class="btn btn-primary" style="flex-shrink:0;height:60px" onclick="postComment('${escHtml(ev.eventId)}')">投稿</button>
+      </div>` : `<p style="font-size:0.875rem;color:var(--color-text-light);margin-top:0.5rem">コメントするにはログインが必要です</p>`}
+    </div>
+
+    <div class="detail-actions">
+      ${joinBtnHtml}
+      ${editDeleteHtml}
+    </div>
+  `;
+}
+
+// ============================================================
+// 参加申込
+// ============================================================
+async function joinEvent(eventId) {
+  if (!appState.token) { openAuthModal(); return; }
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'joinEvent',
+      memberId: appState.memberId,
+      token:    appState.token,
+      eventId
+    });
+    if (res.status === 'ok') {
+      showToast('参加申込が完了しました！', 'success');
+      closeModal('modal-event-detail');
+      await loadEvents();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// 参加キャンセル
+// ============================================================
+async function cancelJoin(eventId) {
+  if (!confirm('参加をキャンセルしますか？')) return;
+  if (!appState.token) { openAuthModal(); return; }
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'cancelJoin',
+      memberId: appState.memberId,
+      token:    appState.token,
+      eventId
+    });
+    if (res.status === 'ok') {
+      showToast('参加をキャンセルしました', 'success');
+      closeModal('modal-event-detail');
+      await loadEvents();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// コメント投稿
+// ============================================================
+async function postComment(eventId) {
+  if (!appState.token) { openAuthModal(); return; }
+  const input = document.getElementById('comment-input-' + eventId);
+  const content = (input ? input.value : '').trim();
+  if (!content) { showToast('コメントを入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'postMessage',
+      memberId: appState.memberId,
+      token:    appState.token,
+      eventId,
+      content
+    });
+    if (res.status === 'ok') {
+      showToast('コメントを投稿しました', 'success');
+      // 詳細を再取得してリフレッシュ
+      const detail = await callGAS({ action: 'getEventDetail', eventId });
+      if (detail.status === 'ok') {
+        renderEventDetail(detail.data.event, detail.data.participants, detail.data.messages);
+      }
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// コメント削除
+// ============================================================
+async function deleteComment(messageId, eventId) {
+  if (!confirm('コメントを削除しますか？')) return;
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'deleteMessage',
+      memberId:   appState.memberId,
+      token:      appState.token,
+      adminToken: appState.adminToken,
+      messageId
+    });
+    if (res.status === 'ok') {
+      showToast('コメントを削除しました', 'success');
+      const detail = await callGAS({ action: 'getEventDetail', eventId });
+      if (detail.status === 'ok') {
+        renderEventDetail(detail.data.event, detail.data.participants, detail.data.messages);
+      }
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// イベント作成フォーム送信
+// ============================================================
+async function submitCreateEvent(e) {
+  e.preventDefault();
+  if (!appState.token) { openAuthModal(); return; }
+
+  const payload = {
+    action:   'createEvent',
+    memberId: appState.memberId,
+    token:    appState.token,
+    event: {
+      title:         document.getElementById('ev-title').value.trim(),
+      eventDate:     document.getElementById('ev-date').value,
+      deadline:      document.getElementById('ev-deadline').value,
+      location:      document.getElementById('ev-location').value.trim(),
+      routeOverview: document.getElementById('ev-route').value.trim(),
+      distance:      document.getElementById('ev-distance').value,
+      elevation:     document.getElementById('ev-elevation').value,
+      difficulty:    document.getElementById('ev-difficulty').value,
+      rinko:         document.getElementById('ev-rinko').value,
+      capacity:      document.getElementById('ev-capacity').value,
+      contact:       document.getElementById('ev-contact').value.trim(),
+      notes:         document.getElementById('ev-notes').value.trim()
+    }
+  };
+
+  const btn = document.getElementById('btn-create-submit');
+  btn.disabled = true;
+  btn.textContent = '公開中…';
+
+  try {
+    const res = await callGAS(payload);
+    if (res.status === 'ok') {
+      showToast('イベントを公開しました！', 'success');
+      document.getElementById('create-event-form').reset();
+      await loadEvents();
+      switchTab('events');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚴 イベントを公開する';
+  }
+}
+
+// ============================================================
+// イベント編集モーダルを開く
+// ============================================================
+function openEditEvent(eventId) {
+  const ev = appState.allEvents.find(e => e.eventId === eventId);
+  if (!ev) { showToast('イベント情報が見つかりません', 'error'); return; }
+
+  document.getElementById('edit-event-id').value = ev.eventId;
+  document.getElementById('edit-ev-title').value     = ev.title || '';
+  document.getElementById('edit-ev-date').value      = ev.eventDate || '';
+  document.getElementById('edit-ev-deadline').value  = ev.deadline || '';
+  document.getElementById('edit-ev-location').value  = ev.location || '';
+  document.getElementById('edit-ev-route').value     = ev.routeOverview || '';
+  document.getElementById('edit-ev-distance').value  = ev.distance || '';
+  document.getElementById('edit-ev-elevation').value = ev.elevation || '';
+  document.getElementById('edit-ev-difficulty').value= ev.difficulty || '中級';
+  document.getElementById('edit-ev-rinko').value     = ev.rinko || 'なし';
+  document.getElementById('edit-ev-capacity').value  = ev.capacity || '';
+  document.getElementById('edit-ev-contact').value   = ev.contact || '';
+  document.getElementById('edit-ev-notes').value     = ev.notes || '';
+
+  closeModal('modal-event-detail');
+  openModal('modal-edit-event');
+}
+
+// ============================================================
+// イベント編集送信
+// ============================================================
+async function submitEditEvent(e) {
+  e.preventDefault();
+  const eventId = document.getElementById('edit-event-id').value;
+
+  const payload = {
+    action:     'updateEvent',
+    memberId:   appState.memberId,
+    token:      appState.token,
+    adminToken: appState.adminToken,
+    eventId,
+    event: {
+      title:         document.getElementById('edit-ev-title').value.trim(),
+      eventDate:     document.getElementById('edit-ev-date').value,
+      deadline:      document.getElementById('edit-ev-deadline').value,
+      location:      document.getElementById('edit-ev-location').value.trim(),
+      routeOverview: document.getElementById('edit-ev-route').value.trim(),
+      distance:      document.getElementById('edit-ev-distance').value,
+      elevation:     document.getElementById('edit-ev-elevation').value,
+      difficulty:    document.getElementById('edit-ev-difficulty').value,
+      rinko:         document.getElementById('edit-ev-rinko').value,
+      capacity:      document.getElementById('edit-ev-capacity').value,
+      contact:       document.getElementById('edit-ev-contact').value.trim(),
+      notes:         document.getElementById('edit-ev-notes').value.trim()
+    }
+  };
+
+  showSpinner();
+  try {
+    const res = await callGAS(payload);
+    if (res.status === 'ok') {
+      showToast('イベントを更新しました', 'success');
+      closeModal('modal-edit-event');
+      await loadEvents();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// イベント削除
+// ============================================================
+async function deleteEvent(eventId) {
+  if (!confirm('このイベントを削除しますか？\n関連する参加申込・コメントも削除されます。')) return;
+
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action:     'deleteEvent',
+      memberId:   appState.memberId,
+      token:      appState.token,
+      adminToken: appState.adminToken,
+      eventId
+    });
+    if (res.status === 'ok') {
+      showToast('イベントを削除しました', 'success');
+      closeModal('modal-event-detail');
+      await loadEvents();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// マイページ
+// ============================================================
+async function loadMyPage() {
+  if (!appState.token) return;
+  showSpinner();
+  try {
+    // 全イベントを再取得（最新状態）
+    const res = await callGAS({ action: 'getEvents', filter: {} });
+    if (res.status !== 'ok') { showToast(res.message, 'error'); return; }
+    const events = res.data.events;
+    appState.allEvents = events;
+
+    // 主催イベント
+    const organized = events.filter(ev => ev.organizerId === appState.memberId);
+    const organizedEl = document.getElementById('my-organized-list');
+    organizedEl.innerHTML = organized.length > 0
+      ? organized.map(ev => buildMyEventItem(ev, true)).join('')
+      : '<div class="empty-state"><p>主催イベントはありません</p></div>';
+
+    // 参加申込中のイベント（参加者として自分のIDがある）
+    // 詳細取得は負荷が高いため、全イベント×getEventDetailは省略。
+    // participantsシートを直接参照できないため、全イベントの詳細を取得して判定
+    const joinedList = document.getElementById('my-joined-list');
+    joinedList.innerHTML = '<div class="empty-state"><p>確認中…</p></div>';
+
+    const joinedEvents = [];
+    for (const ev of events) {
+      if (ev.organizerId === appState.memberId) continue; // 自分が主催するイベントは除外
+      const detail = await callGAS({ action: 'getEventDetail', eventId: ev.eventId });
+      if (detail.status === 'ok') {
+        const isJoined = detail.data.participants.some(p => p.memberId === appState.memberId);
+        if (isJoined) joinedEvents.push(ev);
+      }
+    }
+
+    joinedList.innerHTML = joinedEvents.length > 0
+      ? joinedEvents.map(ev => buildMyEventItem(ev, false)).join('')
+      : '<div class="empty-state"><p>参加申込中のイベントはありません</p></div>';
+
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+function buildMyEventItem(ev, isOrganizer) {
+  const dateStr = ev.eventDate ? String(ev.eventDate).replace(/-/g, '/') : '日程未定';
+  const actions = isOrganizer
+    ? `<button class="btn btn-sm btn-outline" onclick="openEditEvent('${escHtml(ev.eventId)}')">✏️ 編集</button>
+       <button class="btn btn-sm btn-danger"  onclick="deleteEvent('${escHtml(ev.eventId)}')">🗑 削除</button>`
+    : `<button class="btn btn-sm btn-ghost" onclick="cancelJoin('${escHtml(ev.eventId)}')">キャンセル</button>`;
+
+  return `
+    <div class="my-event-item">
+      <div class="my-event-info">
+        <div class="my-event-title">${escHtml(ev.title)}</div>
+        <div class="my-event-date">📅 ${escHtml(dateStr)} ／ 📍 ${escHtml(ev.location)}</div>
+      </div>
+      <div class="my-event-actions">
+        <button class="btn btn-sm btn-primary" onclick="openEventDetail('${escHtml(ev.eventId)}')">詳細</button>
+        ${actions}
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// 管理パネル
+// ============================================================
+async function loadAdminPanel() {
+  if (!appState.adminToken) return;
+  showSpinner();
+  try {
+    // 全イベント
+    const evRes = await callGAS({ action: 'getEvents', filter: {} });
+    if (evRes.status === 'ok') {
+      appState.allEvents = evRes.data.events;
+      const tbody = document.getElementById('admin-events-tbody');
+      tbody.innerHTML = evRes.data.events.length > 0
+        ? evRes.data.events.map(ev => `
+            <tr>
+              <td title="${escHtml(ev.title)}">${escHtml(ev.title)}</td>
+              <td>${escHtml(ev.organizerName)}</td>
+              <td>${escHtml(String(ev.eventDate))}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="deleteEvent('${escHtml(ev.eventId)}')">削除</button></td>
+            </tr>`).join('')
+        : '<tr><td colspan="4" style="text-align:center;color:var(--color-text-light)">イベントはありません</td></tr>';
+    }
+
+    // 全会員
+    const memberRes = await callGAS({ action: 'adminGetAllMembers', adminToken: appState.adminToken });
+    if (memberRes.status === 'ok') {
+      const tbody = document.getElementById('admin-members-tbody');
+      tbody.innerHTML = memberRes.data.members.length > 0
+        ? memberRes.data.members.map(m => `
+            <tr>
+              <td>${escHtml(m.nickname)}</td>
+              <td>${escHtml(String(m.registeredAt).substring(0,10))}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="adminDeleteMember('${escHtml(m.memberId)}')">削除</button></td>
+            </tr>`).join('')
+        : '<tr><td colspan="3" style="text-align:center;color:var(--color-text-light)">会員はいません</td></tr>';
+    }
+
+    // 全コメント
+    const msgRes = await callGAS({ action: 'adminGetAllMessages', adminToken: appState.adminToken });
+    if (msgRes.status === 'ok') {
+      const tbody = document.getElementById('admin-messages-tbody');
+      tbody.innerHTML = msgRes.data.messages.length > 0
+        ? msgRes.data.messages.map(m => `
+            <tr>
+              <td>${escHtml(m.nickname)}</td>
+              <td title="${escHtml(m.content)}">${escHtml(m.content.substring(0,30))}${m.content.length > 30 ? '…' : ''}</td>
+              <td>${escHtml(String(m.postedAt).substring(0,10))}</td>
+              <td><button class="btn btn-sm btn-danger" onclick="adminDeleteCommentDirect('${escHtml(m.messageId)}','${escHtml(m.eventId)}')">削除</button></td>
+            </tr>`).join('')
+        : '<tr><td colspan="4" style="text-align:center;color:var(--color-text-light)">コメントはありません</td></tr>';
+    }
+
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// 管理パネルからの会員削除
+async function adminDeleteMember(targetMemberId) {
+  if (!confirm('この会員を削除しますか？')) return;
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'adminDeleteMember',
+      adminToken: appState.adminToken,
+      targetMemberId
+    });
+    if (res.status === 'ok') {
+      showToast('会員を削除しました', 'success');
+      loadAdminPanel();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// 管理パネルからのコメント削除
+async function adminDeleteCommentDirect(messageId, eventId) {
+  if (!confirm('このコメントを削除しますか？')) return;
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'deleteMessage',
+      adminToken: appState.adminToken,
+      memberId:   appState.memberId || '',
+      token:      appState.token    || '',
+      messageId
+    });
+    if (res.status === 'ok') {
+      showToast('コメントを削除しました', 'success');
+      loadAdminPanel();
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ============================================================
+// XSS対策：HTML エスケープ
+// ============================================================
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+
+<!--
+==============================================================
+  GitHub Pages 公開手順
+==============================================================
+
+1. GitHub で新規リポジトリ「cycling-community」を作成（Public に設定）
+
+2. index.html と gas/Code.gs をコミット＆プッシュ
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/kenken6291/cycling-community.git
+   git push -u origin main
+
+3. GitHub → Settings → Pages → Branch: main / (root) → Save
+   数分後に https://kenken6291.github.io/cycling-community/ で公開される
+
+4. Google Apps Script の設定：
+   a. https://script.google.com/ で「新しいプロジェクト」を作成
+   b. Code.gs の内容を貼り付けて保存
+   c. 「プロジェクトの設定」→「スクリプト プロパティ」で以下を追加：
+      - ADMIN_PASSWORD : 任意の管理者パスワード（例: cyclingAdmin2024）
+      - SHEET_ID       : Google スプレッドシートのID（URLの /d/ 以降の部分）
+
+5. Google スプレッドシートの準備：
+   a. 新規スプレッドシートを作成
+   b. シート名を以下に変更（タブ名を右クリック→「名前を変更」）：
+      - members（会員マスタ）
+      - events（イベント一覧）
+      - participants（参加申込）
+      - messages（コメント連絡板）
+   c. スプレッドシートのURLから SHEET_ID をコピー
+      例: https://docs.google.com/spreadsheets/d/【ここがSHEET_ID】/edit
+
+6. GAS をウェブアプリとしてデプロイ：
+   a. 「デプロイ」→「新しいデプロイ」→「種類の選択: ウェブアプリ」
+   b. 説明：任意（例: v1.0）
+   c. 次のユーザーとして実行：「自分」
+   d. アクセスできるユーザー：「全員」
+   e. 「デプロイ」→「アクセスを承認」→Googleアカウントで認証
+   f. 発行された「ウェブ アプリ URL」をコピー
+      例: https://script.google.com/macros/s/XXXXXXXX/exec
+
+7. index.html の GAS_URL を更新：
+   const GAS_URL = 'https://script.google.com/macros/s/XXXXXXXX/exec';
+   ↑ コピーしたURLに書き換えてコミット＆プッシュ
+
+8. ⚠️ GAS を更新した場合は必ず「新しいバージョン」でデプロイすること
+   （「デプロイを管理」→「✏️ 編集」→バージョン: 「新しいバージョン」を選択）
+
+==============================================================
+-->
+</body>
+</html>
