@@ -666,6 +666,32 @@
       text-decoration: underline;
     }
 
+    /* パスワード表示切替 */
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap .form-input {
+      padding-right: 2.75rem;
+    }
+
+    .btn-pw-toggle {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.125rem;
+      color: var(--color-text-light);
+      padding: 0.25rem;
+      line-height: 1;
+      transition: color var(--transition);
+    }
+
+    .btn-pw-toggle:hover { color: var(--color-primary); }
+
     /* ============================================================
        イベント詳細モーダル
     ============================================================ */
@@ -1282,7 +1308,10 @@
         </div>
         <div class="form-group">
           <label class="form-label">パスワード</label>
-          <input class="form-input" type="password" id="login-password" placeholder="パスワード" autocomplete="current-password">
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="login-password" placeholder="パスワード" autocomplete="current-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('login-password', this)" title="パスワードを表示">👁</button>
+          </div>
         </div>
         <button class="btn btn-primary btn-block" onclick="submitLogin()">ログイン</button>
         <div class="admin-login-link">
@@ -1299,11 +1328,17 @@
         </div>
         <div class="form-group">
           <label class="form-label">パスワード <span class="required">必須</span></label>
-          <input class="form-input" type="password" id="reg-password" placeholder="4文字以上" autocomplete="new-password">
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="reg-password" placeholder="4文字以上" autocomplete="new-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('reg-password', this)" title="パスワードを表示">👁</button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">パスワード（確認）</label>
-          <input class="form-input" type="password" id="reg-password-confirm" placeholder="もう一度入力" autocomplete="new-password">
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="reg-password-confirm" placeholder="もう一度入力" autocomplete="new-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('reg-password-confirm', this)" title="パスワードを表示">👁</button>
+          </div>
         </div>
         <button class="btn btn-accent btn-block" onclick="submitRegister()">会員登録</button>
       </div>
@@ -1312,7 +1347,10 @@
       <div class="auth-tab-panel" id="auth-panel-admin">
         <div class="form-group">
           <label class="form-label">管理者パスワード</label>
-          <input class="form-input" type="password" id="admin-password" placeholder="管理者パスワード" autocomplete="off">
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="admin-password" placeholder="管理者パスワード" autocomplete="off">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('admin-password', this)" title="パスワードを表示">👁</button>
+          </div>
         </div>
         <button class="btn btn-primary btn-block" onclick="submitAdminLogin()">管理者ログイン</button>
         <div class="admin-login-link">
@@ -1440,7 +1478,7 @@
 // 設定
 // GASデプロイ後、以下のURLを書き換えてください
 // ============================================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwTsZrHO44yRv4Ryh0-YHwfsPqUp4YZz1YGOu64FheUfV8UAHe8NteRIErf3DaLByB16Q/exec';
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 
 // ============================================================
 // アプリ状態管理
@@ -2346,6 +2384,22 @@ async function adminDeleteCommentDirect(messageId, eventId) {
     showToast('通信エラー: ' + err.message, 'error');
   } finally {
     hideSpinner();
+  }
+}
+
+// ============================================================
+// パスワード表示・非表示の切替
+// ============================================================
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+    btn.title = 'パスワードを隠す';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+    btn.title = 'パスワードを表示';
   }
 }
 
