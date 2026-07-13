@@ -692,6 +692,69 @@
 
     .btn-pw-toggle:hover { color: var(--color-primary); }
 
+    /* 利用規約同意チェックボックス */
+    .form-check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-check-row input[type="checkbox"] {
+      width: 1.125rem;
+      height: 1.125rem;
+      margin-top: 0.125rem;
+      flex-shrink: 0;
+      accent-color: var(--color-primary);
+    }
+
+    .form-check-row label {
+      font-size: 0.875rem;
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .form-check-row a { font-weight: 500; }
+
+    .terms-box {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      max-height: 45vh;
+      overflow-y: auto;
+      font-size: 0.8125rem;
+      color: var(--color-text-mid);
+      line-height: 1.8;
+    }
+
+    .terms-box h4 {
+      font-size: 0.875rem;
+      color: var(--color-text);
+      margin: 1rem 0 0.375rem;
+    }
+
+    .terms-box h4:first-child { margin-top: 0; }
+
+    .terms-box p { margin-bottom: 0.5rem; }
+
+    /* アカウント設定（マイページ） */
+    .account-settings-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.25rem 0.25rem;
+    }
+
+    .account-email-display {
+      font-size: 0.9375rem;
+      color: var(--color-text-mid);
+      background: var(--color-bg-white);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem;
+    }
+
     /* ============================================================
        イベント詳細モーダル
     ============================================================ */
@@ -1247,6 +1310,45 @@
         <div class="empty-state"><p>参加申込中のイベントはありません</p></div>
       </div>
     </div>
+
+    <div class="my-section">
+      <h3 class="section-title" style="font-size:1.1rem">⚙️ アカウント設定</h3>
+      <div class="account-settings-card">
+        <div class="form-group">
+          <label class="form-label">メールアドレス</label>
+          <div class="account-email-display" id="account-email-display">-</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ニックネーム</label>
+          <input class="form-input" type="text" id="account-nickname" maxlength="20">
+        </div>
+        <button class="btn btn-outline" style="margin-bottom:1.25rem" onclick="submitUpdateNickname()">ニックネームを変更する</button>
+
+        <div class="form-group">
+          <label class="form-label">現在のパスワード</label>
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="account-pw-current" autocomplete="current-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('account-pw-current', this)" title="パスワードを表示">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">新しいパスワード</label>
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="account-pw-new" placeholder="4文字以上" autocomplete="new-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('account-pw-new', this)" title="パスワードを表示">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">新しいパスワード（確認）</label>
+          <div class="password-wrap">
+            <input class="form-input" type="password" id="account-pw-confirm" placeholder="もう一度入力" autocomplete="new-password">
+            <button type="button" class="btn-pw-toggle" onclick="togglePassword('account-pw-confirm', this)" title="パスワードを表示">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="margin-bottom:1.25rem" onclick="submitChangePasswordProfile()">パスワードを変更する</button>
+      </div>
+    </div>
   </section>
 
   <!-- ── 管理パネルタブ ── -->
@@ -1266,7 +1368,7 @@
         <h3 class="section-title" style="font-size:1.1rem">👥 全会員</h3>
         <div class="admin-table-wrap">
           <table class="admin-table" id="admin-members-table">
-            <thead><tr><th>ニックネーム</th><th>登録日</th><th>操作</th></tr></thead>
+            <thead><tr><th>ニックネーム</th><th>メールアドレス</th><th>登録日</th><th>操作</th></tr></thead>
             <tbody id="admin-members-tbody"></tbody>
           </table>
         </div>
@@ -1303,8 +1405,8 @@
       <!-- ログインフォーム -->
       <div class="auth-tab-panel active" id="auth-panel-login">
         <div class="form-group">
-          <label class="form-label">ニックネーム</label>
-          <input class="form-input" type="text" id="login-nickname" placeholder="登録済みのニックネーム" autocomplete="username">
+          <label class="form-label">メールアドレス</label>
+          <input class="form-input" type="email" id="login-email" placeholder="登録済みのメールアドレス" autocomplete="username">
         </div>
         <div class="form-group">
           <label class="form-label">パスワード</label>
@@ -1322,25 +1424,23 @@
       <!-- 新規登録フォーム -->
       <div class="auth-tab-panel" id="auth-panel-register">
         <div class="form-group">
+          <label class="form-label">メールアドレス <span class="required">必須</span></label>
+          <input class="form-input" type="email" id="reg-email" placeholder="example@mail.com" autocomplete="email">
+          <p class="form-hint">仮パスワードをこちらのアドレスに送信します。</p>
+        </div>
+        <div class="form-group">
           <label class="form-label">ニックネーム <span class="required">必須</span></label>
           <input class="form-input" type="text" id="reg-nickname" placeholder="2〜20文字" maxlength="20" autocomplete="username">
-          <p class="form-hint">他の会員に表示されます。あとから変更できません。</p>
+          <p class="form-hint">他の会員に表示されます。登録後も変更できます。</p>
         </div>
-        <div class="form-group">
-          <label class="form-label">パスワード <span class="required">必須</span></label>
-          <div class="password-wrap">
-            <input class="form-input" type="password" id="reg-password" placeholder="4文字以上" autocomplete="new-password">
-            <button type="button" class="btn-pw-toggle" onclick="togglePassword('reg-password', this)" title="パスワードを表示">👁</button>
-          </div>
+        <div class="form-check-row">
+          <input type="checkbox" id="reg-agree-terms">
+          <label for="reg-agree-terms">
+            <a href="#" onclick="openModal('modal-terms'); return false;">利用規約・免責事項</a> に同意する
+          </label>
         </div>
-        <div class="form-group">
-          <label class="form-label">パスワード（確認）</label>
-          <div class="password-wrap">
-            <input class="form-input" type="password" id="reg-password-confirm" placeholder="もう一度入力" autocomplete="new-password">
-            <button type="button" class="btn-pw-toggle" onclick="togglePassword('reg-password-confirm', this)" title="パスワードを表示">👁</button>
-          </div>
-        </div>
-        <button class="btn btn-accent btn-block" onclick="submitRegister()">会員登録</button>
+        <button class="btn btn-accent btn-block" onclick="submitRegister()">仮パスワードを発行して登録</button>
+        <p class="form-hint" style="text-align:center;margin-top:0.75rem;">登録後、メールで届く仮パスワードでログインしてください。</p>
       </div>
 
       <!-- 管理者ログインフォーム -->
@@ -1357,6 +1457,81 @@
           <a href="#" onclick="switchAuthTab('login'); return false;">← 通常ログインに戻る</a>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+  利用規約・免責事項モーダル
+============================================================ -->
+<div class="modal-overlay" id="modal-terms">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">📜 利用規約・免責事項</span>
+      <button class="btn-close" onclick="closeModal('modal-terms')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="terms-box">
+        <h4>1. サービスについて</h4>
+        <p>本サービス「サイクリングコミュニティ」（以下「本サービス」）は、サイクリング仲間との交流・イベント企画を目的とした、運営者による無償のボランティア運営サービスです。</p>
+
+        <h4>2. 参加における注意事項</h4>
+        <p>サイクリングは公道・自然環境下で行う活動であり、天候、路面状況、交通事故、体調不良など様々な要因により、怪我・事故・器物破損等が発生する可能性があります。本サービスを通じて知ったイベントへの参加は、会員ご自身の判断と責任において行ってください。</p>
+
+        <h4>3. 免責事項</h4>
+        <p>本サービスの運営者およびイベント主催者（会員）は、参加者間のトラブル、事故、怪我、物損、その他イベント参加に起因して生じた損害について、運営者に故意または重大な過失がある場合を除き、一切の責任を負いません。イベントの主催は会員個人が行うものであり、運営者が主催・保証するものではありません。</p>
+
+        <h4>4. 禁止事項</h4>
+        <p>他の会員への誹謗中傷、なりすまし、虚偽情報の登録、営利目的での無断勧誘、法令に反する行為を禁止します。違反が確認された場合、事前の通知なく会員登録を削除する場合があります。</p>
+
+        <h4>5. 個人情報の取り扱い</h4>
+        <p>登録いただいたメールアドレスは、仮パスワードの発行・重要なお知らせの送信にのみ使用し、目的外の利用や第三者提供は行いません。ニックネームは他の会員に公開されます。</p>
+
+        <h4>6. サービスの変更・停止</h4>
+        <p>運営者は、会員への事前通知なく本サービスの内容変更・提供の停止・終了を行うことができるものとします。これによって生じた損害について、運営者は責任を負いません。</p>
+
+        <h4>7. 規約の変更</h4>
+        <p>本規約は予告なく変更されることがあります。変更後の規約は本ページに掲載した時点で効力を生じるものとします。</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-terms')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+  初回ログイン：パスワード変更モーダル（必須・閉じられない）
+============================================================ -->
+<div class="modal-overlay" id="modal-force-pw">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">🔑 パスワードの変更が必要です</span>
+    </div>
+    <div class="modal-body">
+      <p class="form-hint" style="margin-bottom:1.25rem;font-size:0.875rem;">初回ログインです。安全のため、メールでお送りした仮パスワードから新しいパスワードへの変更をお願いします。</p>
+      <div class="form-group">
+        <label class="form-label">仮パスワード（メールに記載） <span class="required">必須</span></label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="force-pw-current" placeholder="メールに記載の仮パスワード" autocomplete="current-password">
+          <button type="button" class="btn-pw-toggle" onclick="togglePassword('force-pw-current', this)" title="パスワードを表示">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">新しいパスワード <span class="required">必須</span></label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="force-pw-new" placeholder="4文字以上" autocomplete="new-password">
+          <button type="button" class="btn-pw-toggle" onclick="togglePassword('force-pw-new', this)" title="パスワードを表示">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">新しいパスワード（確認） <span class="required">必須</span></label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="force-pw-confirm" placeholder="もう一度入力" autocomplete="new-password">
+          <button type="button" class="btn-pw-toggle" onclick="togglePassword('force-pw-confirm', this)" title="パスワードを表示">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="submitForcePasswordChange()">パスワードを変更する</button>
     </div>
   </div>
 </div>
@@ -1487,6 +1662,7 @@ let appState = {
   // ログイン済み会員情報
   memberId:   sessionStorage.getItem('memberId')   || null,
   nickname:   sessionStorage.getItem('nickname')   || null,
+  email:      sessionStorage.getItem('email')      || null,
   token:      sessionStorage.getItem('token')      || null,
   // 管理者ログイン
   adminToken: sessionStorage.getItem('adminToken') || null,
@@ -1557,7 +1733,7 @@ function updateAuthUI() {
 // ============================================================
 function logout() {
   sessionStorage.clear();
-  appState = { memberId: null, nickname: null, token: null, adminToken: null, allEvents: appState.allEvents, filteredEvents: appState.filteredEvents };
+  appState = { memberId: null, nickname: null, email: null, token: null, adminToken: null, allEvents: appState.allEvents, filteredEvents: appState.filteredEvents };
   updateAuthUI();
   switchTab('events');
   showToast('ログアウトしました', 'success');
@@ -1575,7 +1751,7 @@ function switchTab(tabName) {
   });
 
   // タブ切替時に必要なデータを取得
-  if (tabName === 'mypage') loadMyPage();
+  if (tabName === 'mypage') { loadMyPage(); loadAccountSettings(); }
   if (tabName === 'admin')  loadAdminPanel();
 }
 
@@ -1595,6 +1771,7 @@ function closeModal(id) {
 // オーバーレイクリックで閉じる
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
+    if (overlay.id === 'modal-force-pw') return; // 初回パスワード変更は完了するまで閉じられない
     if (e.target === overlay) closeModal(overlay.id);
   });
 });
@@ -1648,25 +1825,33 @@ function switchAuthTab(tab) {
 
 // ── ログイン送信 ──
 async function submitLogin() {
-  const nickname = document.getElementById('login-nickname').value.trim();
+  const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
-  if (!nickname || !password) { showToast('ニックネームとパスワードを入力してください', 'error'); return; }
+  if (!email || !password) { showToast('メールアドレスとパスワードを入力してください', 'error'); return; }
 
   showSpinner();
   try {
-    const res = await callGAS({ action: 'login', nickname, password });
+    const res = await callGAS({ action: 'login', email, password });
     if (res.status === 'ok') {
-      const { memberId, nickname: nick, token } = res.data;
+      const { memberId, nickname: nick, email: mail, token, mustChangePassword } = res.data;
       appState.memberId = memberId;
       appState.nickname = nick;
+      appState.email    = mail;
       appState.token    = token;
       sessionStorage.setItem('memberId', memberId);
       sessionStorage.setItem('nickname', nick);
+      sessionStorage.setItem('email',    mail);
       sessionStorage.setItem('token',    token);
       closeModal('modal-auth');
       updateAuthUI();
       renderEvents(); // カードの参加ボタン等を更新
-      showToast(`ようこそ、${nick} さん！`, 'success');
+
+      if (mustChangePassword) {
+        showToast(`ようこそ、${nick} さん！続けてパスワードを変更してください`, 'success');
+        openModal('modal-force-pw');
+      } else {
+        showToast(`ようこそ、${nick} さん！`, 'success');
+      }
     } else {
       showToast(res.message, 'error');
     }
@@ -1679,20 +1864,23 @@ async function submitLogin() {
 
 // ── 会員登録送信 ──
 async function submitRegister() {
+  const email     = document.getElementById('reg-email').value.trim();
   const nickname  = document.getElementById('reg-nickname').value.trim();
-  const password  = document.getElementById('reg-password').value;
-  const confirm   = document.getElementById('reg-password-confirm').value;
+  const agreedToTerms = document.getElementById('reg-agree-terms').checked;
 
-  if (!nickname || !password) { showToast('ニックネームとパスワードを入力してください', 'error'); return; }
-  if (password !== confirm)   { showToast('パスワードが一致しません', 'error'); return; }
+  if (!email || !nickname) { showToast('メールアドレスとニックネームを入力してください', 'error'); return; }
+  if (!agreedToTerms)      { showToast('利用規約・免責事項への同意が必要です', 'error'); return; }
 
   showSpinner();
   try {
-    const res = await callGAS({ action: 'register', nickname, password });
+    const res = await callGAS({ action: 'register', email, nickname, agreedToTerms });
     if (res.status === 'ok') {
-      showToast('会員登録が完了しました。ログインしてください。', 'success');
+      showToast('仮パスワードをメールで送信しました。メールをご確認のうえログインしてください', 'success');
       switchAuthTab('login');
-      document.getElementById('login-nickname').value = nickname;
+      document.getElementById('login-email').value = email;
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-nickname').value = '';
+      document.getElementById('reg-agree-terms').checked = false;
     } else {
       showToast(res.message, 'error');
     }
@@ -1701,6 +1889,112 @@ async function submitRegister() {
   } finally {
     hideSpinner();
   }
+}
+
+// ── 初回ログイン：パスワード変更送信 ──
+async function submitForcePasswordChange() {
+  const currentPassword = document.getElementById('force-pw-current').value;
+  const newPassword     = document.getElementById('force-pw-new').value;
+  const confirm         = document.getElementById('force-pw-confirm').value;
+
+  if (!currentPassword || !newPassword) { showToast('仮パスワードと新しいパスワードを入力してください', 'error'); return; }
+  if (newPassword !== confirm)          { showToast('新しいパスワードが一致しません', 'error'); return; }
+  if (newPassword.length < 4)           { showToast('新しいパスワードは4文字以上で入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'changePassword',
+      memberId: appState.memberId,
+      token: appState.token,
+      currentPassword,
+      newPassword
+    });
+    if (res.status === 'ok') {
+      document.getElementById('force-pw-current').value  = '';
+      document.getElementById('force-pw-new').value      = '';
+      document.getElementById('force-pw-confirm').value  = '';
+      closeModal('modal-force-pw');
+      showToast('パスワードを変更しました', 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ── アカウント設定：ニックネーム変更 ──
+async function submitUpdateNickname() {
+  if (!appState.token) return;
+  const nickname = document.getElementById('account-nickname').value.trim();
+  if (!nickname) { showToast('ニックネームを入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'updateNickname',
+      memberId: appState.memberId,
+      token: appState.token,
+      nickname
+    });
+    if (res.status === 'ok') {
+      appState.nickname = res.data.nickname;
+      sessionStorage.setItem('nickname', res.data.nickname);
+      updateAuthUI();
+      showToast('ニックネームを変更しました', 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ── アカウント設定：パスワード変更 ──
+async function submitChangePasswordProfile() {
+  if (!appState.token) return;
+  const currentPassword = document.getElementById('account-pw-current').value;
+  const newPassword     = document.getElementById('account-pw-new').value;
+  const confirm         = document.getElementById('account-pw-confirm').value;
+
+  if (!currentPassword || !newPassword) { showToast('現在のパスワードと新しいパスワードを入力してください', 'error'); return; }
+  if (newPassword !== confirm)          { showToast('新しいパスワードが一致しません', 'error'); return; }
+  if (newPassword.length < 4)           { showToast('新しいパスワードは4文字以上で入力してください', 'error'); return; }
+
+  showSpinner();
+  try {
+    const res = await callGAS({
+      action: 'changePassword',
+      memberId: appState.memberId,
+      token: appState.token,
+      currentPassword,
+      newPassword
+    });
+    if (res.status === 'ok') {
+      document.getElementById('account-pw-current').value = '';
+      document.getElementById('account-pw-new').value     = '';
+      document.getElementById('account-pw-confirm').value = '';
+      showToast('パスワードを変更しました', 'success');
+    } else {
+      showToast(res.message, 'error');
+    }
+  } catch (err) {
+    showToast('通信エラー: ' + err.message, 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+// ── アカウント設定フォームへ現在の値を反映 ──
+function loadAccountSettings() {
+  if (!appState.token) return;
+  document.getElementById('account-email-display').textContent = appState.email || '-';
+  document.getElementById('account-nickname').value = appState.nickname || '';
 }
 
 // ── 管理者ログイン送信 ──
@@ -2311,10 +2605,11 @@ async function loadAdminPanel() {
         ? memberRes.data.members.map(m => `
             <tr>
               <td>${escHtml(m.nickname)}</td>
+              <td>${escHtml(m.email)}</td>
               <td>${escHtml(String(m.registeredAt).substring(0,10))}</td>
               <td><button class="btn btn-sm btn-danger" onclick="adminDeleteMember('${escHtml(m.memberId)}')">削除</button></td>
             </tr>`).join('')
-        : '<tr><td colspan="3" style="text-align:center;color:var(--color-text-light)">会員はいません</td></tr>';
+        : '<tr><td colspan="4" style="text-align:center;color:var(--color-text-light)">会員はいません</td></tr>';
     }
 
     // 全コメント
@@ -2439,8 +2734,11 @@ function escHtml(str) {
    a. https://script.google.com/ で「新しいプロジェクト」を作成
    b. Code.gs の内容を貼り付けて保存
    c. 「プロジェクトの設定」→「スクリプト プロパティ」で以下を追加：
-      - ADMIN_PASSWORD : 任意の管理者パスワード（例: cyclingAdmin2024）
-      - SHEET_ID       : Google スプレッドシートのID（URLの /d/ 以降の部分）
+      - ADMIN_PASSWORD  : 任意の管理者パスワード（例: cyclingAdmin2024）
+      - SHEET_ID        : Google スプレッドシートのID（URLの /d/ 以降の部分）
+      - PASSWORD_PEPPER : （推奨）パスワードハッシュ化用の長いランダム文字列
+   d. 仮パスワードの送信は MailApp を使用します。デプロイ時の権限承認で
+      Gmail送信の許可を求められたら承認してください（1日の送信数上限あり）。
 
 5. Google スプレッドシートの準備：
    a. 新規スプレッドシートを作成
@@ -2449,7 +2747,13 @@ function escHtml(str) {
       - events（イベント一覧）
       - participants（参加申込）
       - messages（コメント連絡板）
-   c. スプレッドシートのURLから SHEET_ID をコピー
+   c. members シートの1行目（ヘッダー）に以下の列を作成：
+      A: memberId  B: email  C: passwordHash  D: salt  E: nickname
+      F: mustChangePassword  G: agreedAt  H: registeredAt  I: updatedAt
+      ⚠️ 旧バージョン（ニックネーム＋パスワードのみ）からの移行の場合、
+         既存会員にはメールアドレスがないためログインできません。
+         members シートの中身を空にして運用を再開することをおすすめします。
+   d. スプレッドシートのURLから SHEET_ID をコピー
       例: https://docs.google.com/spreadsheets/d/【ここがSHEET_ID】/edit
 
 6. GAS をウェブアプリとしてデプロイ：

@@ -3,10 +3,24 @@
  * Google Apps Script バックエンド
  *
  * スクリプトプロパティ設定（必須）：
- *   ADMIN_PASSWORD : 管理者パスワード（任意の文字列）
- *   SHEET_ID       : Google スプレッドシートのID
+ *   ADMIN_PASSWORD  : 管理者パスワード（任意の文字列）
+ *   SHEET_ID        : Google スプレッドシートのID
  *
- * ⚠️ パスワードは現在平文保存。本番移行時はSHA-256等でハッシュ化を推奨。
+ * スクリプトプロパティ設定（推奨）：
+ *   PASSWORD_PEPPER : パスワードハッシュ化用の共通ペッパー文字列（任意の長いランダム文字列）
+ *
+ * 会員登録の流れ：
+ *   1. メールアドレス・ニックネームを入力し、利用規約・免責事項に同意して登録
+ *   2. サーバーが仮パスワードを生成し、MailAppでメール送信（SHA-256+salt+pepperでハッシュ化して保存）
+ *   3. 仮パスワードでログイン → mustChangePassword=true が返るのでパスワード変更を強制
+ *   4. 変更後、通常利用可能
+ *
+ * members シート列構成：
+ *   A: memberId  B: email  C: passwordHash  D: salt  E: nickname
+ *   F: mustChangePassword(true/false)  G: agreedAt  H: registeredAt  I: updatedAt
+ *
+ * ⚠️ 旧スキーマ（ニックネーム＋パスワードのみ）からの移行時は、
+ *    メールアドレスが存在しない既存会員は再登録が必要です。
  */
 
 // ============================================================
@@ -35,6 +49,12 @@ function doPost(e) {
         break;
       case 'login':
         result = loginMember(body);
+        break;
+      case 'changePassword':
+        result = changePassword(body);
+        break;
+      case 'updateNickname':
+        result = updateNickname(body);
         break;
       case 'adminLogin':
         result = adminLogin(body);
@@ -140,6 +160,94 @@ function generateUUID() {
 }
 
 // ============================================================
+// パスワードハッシュ化
+// ============================================================
+
+/**
+ * パスワードをSHA-256（salt + pepper付き）でハッシュ化し、16進文字列で返す
+ * @param {string} password - 平文パスワード
+ * @param {string} salt - 会員ごとのランダムsalt（membersシートに保存）
+ * @returns {string} SHA-256ハッシュ値（64文字の16進文字列）
+ */
+function hashPassword(password, salt) {
+  var pepper = PropertiesService.getScriptProperties().getProperty('PASSWORD_PEPPER') || '';
+  var combined = String(password) + String(salt || '') + pepper;
+  var digest = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    combined,
+    Utilities.Charset.UTF_8
+  );
+  var hex = '';
+  for (var i = 0; i < digest.length; i++) {
+    var byte = digest[i];
+    if (byte < 0) byte += 256; // 符号付きバイトを補正
+    var h = byte.toString(16);
+    if (h.length === 1) h = '0' + h;
+    hex += h;
+  }
+  return hex;
+}
+
+/**
+ * ランダムな仮パスワードを生成する（紛らわしい文字は除外）
+ */
+function generateTempPassword() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  var length = 10;
+  var pw = '';
+  for (var i = 0; i < length; i++) {
+    pw += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pw;
+}
+
+// ============================================================
+// レート制限（CacheService）
+// ============================================================
+
+/**
+ * 指定キーの試行回数をチェックし、上限内であればカウントアップする
+ * @returns {boolean} 上限内なら true、上限超過なら false
+ */
+function checkRateLimit(key, maxAttempts, windowSeconds) {
+  var cache = CacheService.getScriptCache();
+  var countStr = cache.get(key);
+  var count = countStr ? parseInt(countStr, 10) : 0;
+  if (count >= maxAttempts) return false;
+  cache.put(key, String(count + 1), windowSeconds);
+  return true;
+}
+
+/**
+ * レート制限カウンタをリセットする（ログイン成功時など）
+ */
+function clearRateLimit(key) {
+  CacheService.getScriptCache().remove(key);
+}
+
+// ============================================================
+// メール送信
+// ============================================================
+
+/**
+ * 仮パスワードを会員にメール送信する
+ */
+function sendTempPasswordEmail(email, nickname, tempPassword) {
+  var subject = '【サイクリングコミュニティ】仮パスワードのお知らせ';
+  var body =
+    nickname + ' 様\n\n' +
+    'サイクリングコミュニティへご登録いただきありがとうございます。\n' +
+    '以下の仮パスワードでログインし、初回ログイン時に画面の案内に従って\n' +
+    '新しいパスワードへの変更をお願いいたします。\n\n' +
+    '仮パスワード： ' + tempPassword + '\n\n' +
+    'ログインページ： https://kenken6291.github.io/cycling-community/\n\n' +
+    '※このメールにお心当たりがない場合は、お手数ですが破棄してください。\n\n' +
+    '-----------------------------------\n' +
+    'サイクリングコミュニティ運営';
+  MailApp.sendEmail(email, subject, body);
+}
+
+// ============================================================
 // トークン管理
 // ============================================================
 
@@ -232,39 +340,74 @@ function nowString() {
 // ============================================================
 
 /**
- * 新規会員登録
- * @param {Object} body - { nickname, password }
+ * 新規会員登録（メールアドレス＋ニックネーム。パスワードは仮発行してメール送信）
+ * @param {Object} body - { email, nickname, agreedToTerms }
  */
 function registerMember(body) {
+  var email = (body.email || '').trim().toLowerCase();
   var nickname = (body.nickname || '').trim();
-  var password = (body.password || '').trim();
+  var agreedToTerms = !!body.agreedToTerms;
 
   // バリデーション
+  var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailPattern.test(email)) {
+    return { status: 'error', message: '有効なメールアドレスを入力してください' };
+  }
   if (!nickname || nickname.length < 2 || nickname.length > 20) {
     return { status: 'error', message: 'ニックネームは2〜20文字で入力してください' };
   }
-  if (!password || password.length < 4) {
-    return { status: 'error', message: 'パスワードは4文字以上で入力してください' };
+  if (!agreedToTerms) {
+    return { status: 'error', message: '利用規約・免責事項への同意が必要です' };
+  }
+
+  // 登録試行のレート制限（同一メールアドレスからの連続登録を防止）
+  if (!checkRateLimit('reg_' + email, 3, 3600)) {
+    return { status: 'error', message: '登録の試行回数が上限に達しました。しばらくしてから再度お試しください' };
   }
 
   var sheet = getSheet('members');
   var data = sheet.getDataRange().getValues();
 
-  // ニックネーム重複チェック（1行目はヘッダーのためスキップ）
+  // メールアドレス・ニックネームの重複チェック（1行目はヘッダーのためスキップ）
   for (var i = 1; i < data.length; i++) {
-    if (data[i][1] === nickname) {
+    if (String(data[i][1]).toLowerCase() === email) {
+      return { status: 'error', message: 'このメールアドレスはすでに登録されています' };
+    }
+    if (data[i][4] === nickname) {
       return { status: 'error', message: 'そのニックネームはすでに使用されています' };
     }
   }
 
-  // 新規会員を追加
+  // 仮パスワードを生成し、salt+pepper付きSHA-256でハッシュ化して保存
   var memberId = generateUUID();
+  var tempPassword = generateTempPassword();
+  var salt = generateUUID();
+  var passwordHash = hashPassword(tempPassword, salt);
   var now = nowString();
-  sheet.appendRow([memberId, nickname, password, now, '']);
+
+  sheet.appendRow([
+    memberId,       // A: memberId
+    email,          // B: email
+    passwordHash,   // C: passwordHash
+    salt,           // D: salt
+    nickname,       // E: nickname
+    true,           // F: mustChangePassword
+    now,            // G: agreedAt
+    now,            // H: registeredAt
+    now             // I: updatedAt
+  ]);
+
+  // 仮パスワードをメール送信。失敗した場合は登録自体をロールバックする
+  try {
+    sendTempPasswordEmail(email, nickname, tempPassword);
+  } catch (mailErr) {
+    sheet.deleteRow(sheet.getLastRow());
+    return { status: 'error', message: 'メール送信に失敗しました。メールアドレスをご確認のうえ、再度お試しください' };
+  }
 
   return {
     status: 'ok',
-    data: { message: '会員登録が完了しました', memberId: memberId, nickname: nickname }
+    data: { message: '仮パスワードをメールで送信しました。メールをご確認のうえログインしてください' }
   };
 }
 
@@ -274,32 +417,137 @@ function registerMember(body) {
 
 /**
  * 会員ログイン
- * @param {Object} body - { nickname, password }
+ * @param {Object} body - { email, password }
  */
 function loginMember(body) {
-  var nickname = (body.nickname || '').trim();
+  var email = (body.email || '').trim().toLowerCase();
   var password = (body.password || '').trim();
 
-  if (!nickname || !password) {
-    return { status: 'error', message: 'ニックネームとパスワードを入力してください' };
+  if (!email || !password) {
+    return { status: 'error', message: 'メールアドレスとパスワードを入力してください' };
+  }
+
+  // ログイン試行のレート制限（総当たり攻撃対策）
+  var rateLimitKey = 'login_' + email;
+  if (!checkRateLimit(rateLimitKey, 5, 900)) {
+    return { status: 'error', message: 'ログイン試行回数が上限に達しました。しばらくしてから再度お試しください' };
   }
 
   var sheet = getSheet('members');
   var data = sheet.getDataRange().getValues();
 
-  // ニックネームとパスワードを照合
   for (var i = 1; i < data.length; i++) {
-    if (data[i][1] === nickname && data[i][2] === password) {
-      var memberId = data[i][0];
-      var token = generateToken(memberId);
-      return {
-        status: 'ok',
-        data: { memberId: memberId, nickname: nickname, token: token }
-      };
+    if (String(data[i][1]).toLowerCase() === email) {
+      var salt = data[i][3];
+      var hashedInput = hashPassword(password, salt);
+      if (data[i][2] === hashedInput) {
+        var memberId = data[i][0];
+        var token = generateToken(memberId);
+        clearRateLimit(rateLimitKey);
+        return {
+          status: 'ok',
+          data: {
+            memberId: memberId,
+            nickname: data[i][4],
+            email: data[i][1],
+            token: token,
+            mustChangePassword: data[i][5] === true || String(data[i][5]).toLowerCase() === 'true'
+          }
+        };
+      }
+      break; // メールアドレスは一致したがパスワードが違う場合もこの後は共通の汎用エラーを返す
     }
   }
 
-  return { status: 'error', message: 'ニックネームまたはパスワードが違います' };
+  // アカウントの有無を区別しない汎用エラー（アカウント列挙対策）
+  return { status: 'error', message: 'メールアドレスまたはパスワードが違います' };
+}
+
+// ============================================================
+// パスワード変更 (changePassword)
+// ============================================================
+
+/**
+ * パスワードを変更する（本人のみ）。初回ログイン時の強制変更にも使用。
+ * @param {Object} body - { memberId, token, currentPassword, newPassword }
+ */
+function changePassword(body) {
+  if (!verifyToken(body.memberId, body.token)) {
+    return { status: 'error', message: 'ログインが必要です。再度ログインしてください' };
+  }
+
+  var currentPassword = (body.currentPassword || '').trim();
+  var newPassword = (body.newPassword || '').trim();
+
+  if (!currentPassword || !newPassword) {
+    return { status: 'error', message: '現在のパスワードと新しいパスワードを入力してください' };
+  }
+  if (newPassword.length < 4) {
+    return { status: 'error', message: '新しいパスワードは4文字以上で入力してください' };
+  }
+
+  var sheet = getSheet('members');
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === body.memberId) {
+      var salt = data[i][3];
+      var hashedCurrent = hashPassword(currentPassword, salt);
+      if (data[i][2] !== hashedCurrent) {
+        return { status: 'error', message: '現在のパスワードが正しくありません' };
+      }
+
+      var newSalt = generateUUID();
+      var newHash = hashPassword(newPassword, newSalt);
+      sheet.getRange(i + 1, 3).setValue(newHash);      // C: passwordHash
+      sheet.getRange(i + 1, 4).setValue(newSalt);      // D: salt
+      sheet.getRange(i + 1, 6).setValue(false);        // F: mustChangePassword
+      sheet.getRange(i + 1, 9).setValue(nowString());  // I: updatedAt
+
+      return { status: 'ok', data: { message: 'パスワードを変更しました' } };
+    }
+  }
+
+  return { status: 'error', message: '会員情報が見つかりません' };
+}
+
+// ============================================================
+// ニックネーム変更 (updateNickname)
+// ============================================================
+
+/**
+ * ニックネームを変更する（本人のみ）
+ * @param {Object} body - { memberId, token, nickname }
+ */
+function updateNickname(body) {
+  if (!verifyToken(body.memberId, body.token)) {
+    return { status: 'error', message: 'ログインが必要です。再度ログインしてください' };
+  }
+
+  var newNickname = (body.nickname || '').trim();
+  if (!newNickname || newNickname.length < 2 || newNickname.length > 20) {
+    return { status: 'error', message: 'ニックネームは2〜20文字で入力してください' };
+  }
+
+  var sheet = getSheet('members');
+  var data = sheet.getDataRange().getValues();
+
+  // 重複チェック（自分以外）
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][4] === newNickname && data[i][0] !== body.memberId) {
+      return { status: 'error', message: 'そのニックネームはすでに使用されています' };
+    }
+  }
+
+  for (var j = 1; j < data.length; j++) {
+    if (data[j][0] === body.memberId) {
+      sheet.getRange(j + 1, 5).setValue(newNickname);   // E: nickname
+      sheet.getRange(j + 1, 9).setValue(nowString());   // I: updatedAt
+      return { status: 'ok', data: { message: 'ニックネームを変更しました', nickname: newNickname } };
+    }
+  }
+
+  return { status: 'error', message: '会員情報が見つかりません' };
 }
 
 // ============================================================
@@ -521,7 +769,7 @@ function createEvent(body) {
   var organizerNickname = '';
   for (var i = 1; i < membersData.length; i++) {
     if (membersData[i][0] === body.memberId) {
-      organizerNickname = membersData[i][1];
+      organizerNickname = membersData[i][4];
       break;
     }
   }
@@ -727,7 +975,7 @@ function joinEvent(body) {
   var nickname = '';
   for (var mi = 1; mi < membersData.length; mi++) {
     if (membersData[mi][0] === body.memberId) {
-      nickname = membersData[mi][1];
+      nickname = membersData[mi][4];
       break;
     }
   }
@@ -810,7 +1058,7 @@ function postMessage(body) {
   var nickname = '';
   for (var mi = 1; mi < membersData.length; mi++) {
     if (membersData[mi][0] === body.memberId) {
-      nickname = membersData[mi][1];
+      nickname = membersData[mi][4];
       break;
     }
   }
@@ -911,10 +1159,11 @@ function adminGetAllMembers(body) {
     if (!data[i][0]) continue;
     members.push({
       memberId:   data[i][0],
-      nickname:   data[i][1],
-      // パスワードは返さない
-      registeredAt: data[i][3],
-      memo:       data[i][4]
+      email:      data[i][1],
+      // パスワード・saltは返さない
+      nickname:   data[i][4],
+      mustChangePassword: data[i][5] === true || String(data[i][5]).toLowerCase() === 'true',
+      registeredAt: data[i][7]
     });
   }
 
